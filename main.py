@@ -153,6 +153,12 @@ def main():
         all_sprites.update(dt)
         explosion_group.update(dt)
 
+        # If all asteroids are gone, spawn a new wave
+        if len(asteroid_group) == 0:
+            field.spawn_initial_asteroids(6)
+
+
+
         # -----------------------------------------------------
         # Collision: Shots vs Asteroids
         # -----------------------------------------------------
