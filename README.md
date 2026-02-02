@@ -8,13 +8,13 @@ Each wave increases difficulty by spawning more asteroids.
 
 ### Controls
 
-| Action        | Key     |
-|---------------|---------|
-| Rotate Left   | ←       |
-| Rotate Right  | →       |
-| Thrust        | ↑       |
-| Shoot         | Space   |
-| Quit          | ESC     |
+| Action        | Key        |
+|---------------|------------|
+| Rotate Left   | ←  or a    |
+| Rotate Right  | →  or d    |
+| Thrust        | ↑  or w    |
+| Shoot         | Space      |
+| Quit          | ESC        |
 
 
 
@@ -92,6 +92,7 @@ Feel free to fork, modify, and experiment.
 👤 Author
 Picotazo AKA: Peck
 Python developer, game tinkerer, and arcade enthusiast.
+
 
 
 
