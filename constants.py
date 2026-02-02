@@ -1,16 +1,39 @@
+# constants.py
+
+# ---------------------------------------------------------
+# Screen settings
+# ---------------------------------------------------------
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 
-PLAYER_RADIUS = 20
+# ---------------------------------------------------------
+# Drawing
+# ---------------------------------------------------------
 LINE_WIDTH = 2
-PLAYER_TURN_SPEED = 300
-PLAYER_SPEED = 200
+FONT_SIZE = 36   # NEW: used for score + lives display
 
-ASTEROID_MIN_RADIUS = 20
-ASTEROID_KINDS = 3
-ASTEROID_SPAWN_RATE_SECONDS = 0.8
-ASTEROID_MAX_RADIUS = ASTEROID_MIN_RADIUS * ASTEROID_KINDS
+# ---------------------------------------------------------
+# Player settings
+# ---------------------------------------------------------
+PLAYER_RADIUS = 20
+PLAYER_TURN_SPEED = 200      # degrees per second
+PLAYER_THRUST = 200          # acceleration
+PLAYER_INVINCIBILITY_TIME = 2.0  # seconds
 
-SHOT_RADIUS = 5
-PLAYER_SHOOT_SPEED = 500
-PLAYER_SHOOT_COOLDOWN_SECONDS = 0.3
+# ---------------------------------------------------------
+# Asteroid settings
+# ---------------------------------------------------------
+ASTEROID_MIN_RADIUS = 15
+
+# ---------------------------------------------------------
+# Gameplay
+# ---------------------------------------------------------
+PLAYER_LIVES = 3
+
+# ---------------------------------------------------------
+# Shot settings
+SHOT_RADIUS = 2
+SHOT_SPEED = 500
+SHOT_LIFETIME = 1.5  # seconds
+SHOT_FIRE_RATE = 0.25  # seconds between shots
+# ---------------------------------------------------------

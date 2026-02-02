@@ -1,5 +1,4 @@
 # main.py
-
 import pygame
 import sys
 from pygame.math import Vector2
@@ -10,6 +9,8 @@ from constants import (
     SCREEN_HEIGHT,
     FONT_SIZE,
     PLAYER_LIVES,
+    SHOT_RADIUS,
+    SHOT_SPEED,
 )
 from player import Player
 from asteroid import Asteroid
@@ -24,7 +25,6 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     background = Starfield()
-
 
     # ---------------------------------------------------------
     # Sprite groups
@@ -79,7 +79,8 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     direction = Vector2(1, 0).rotate(player.rotation)
-                    Shot(player.position.x, player.position.y, direction)
+                    shot = Shot(player.position.x, player.position.y, SHOT_RADIUS)
+                    shot.velocity = direction * SHOT_SPEED
 
         # -----------------------------------------------------
         # Update all sprites
@@ -122,7 +123,6 @@ def main():
         # -----------------------------------------------------
         screen.fill("black")
         background.draw(screen)
-
 
         # Draw sprites
         for sprite in all_sprites:
