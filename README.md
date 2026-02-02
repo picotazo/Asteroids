@@ -92,7 +92,9 @@ Feel free to fork, modify, and experiment.
 
 👤 Author
 Picotazo AKA: Peck
-Python developer, game tinkerer, and arcade enthusiast.
+
+Python novice, old fart, past EQ player, Past WoW player, Father of 2!!
+
 
 
 
