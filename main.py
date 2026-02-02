@@ -3,6 +3,7 @@
 import pygame
 import sys
 from pygame.math import Vector2
+from background import Starfield
 
 from constants import (
     SCREEN_WIDTH,
@@ -22,6 +23,8 @@ def main():
     pygame.display.set_caption("Asteroids")
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
+    background = Starfield()
+
 
     # ---------------------------------------------------------
     # Sprite groups
@@ -118,6 +121,8 @@ def main():
         # Drawing
         # -----------------------------------------------------
         screen.fill("black")
+        background.draw(screen)
+
 
         # Draw sprites
         for sprite in all_sprites:
