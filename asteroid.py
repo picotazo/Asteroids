@@ -15,8 +15,8 @@ from explosion import Explosion
 
 
 class Asteroid(CircleShape):
-    containers = None          # set by main.py
-    explosion_group = None     # NEW: explosion group reference
+    containers = None
+    explosion_group = None
 
     def __init__(self, x, y, radius):
         super().__init__(x, y, radius)
@@ -25,16 +25,41 @@ class Asteroid(CircleShape):
         speed = random.uniform(40, 120)
         self.velocity = Vector2(1, 0).rotate(angle) * speed
 
+        # NEW: random polygon shape
+        self.points = self.generate_shape()
+
+        # NEW: rotation speed
+        self.rotation = random.uniform(-40, 40)
+
         if Asteroid.containers:
             for group in Asteroid.containers:
                 group.add(self)
 
     # ---------------------------------------------------------
-    # Update movement + wrapping
+    # Generate a lumpy asteroid polygon
+    # ---------------------------------------------------------
+    def generate_shape(self):
+        points = []
+        count = random.randint(8, 14)
+
+        for i in range(count):
+            angle = (360 / count) * i + random.uniform(-10, 10)
+            distance = random.uniform(self.radius * 0.6, self.radius)
+            point = Vector2(distance, 0).rotate(angle)
+            points.append(point)
+
+        return points
+
+    # ---------------------------------------------------------
+    # Update movement + rotation + wrapping
     # ---------------------------------------------------------
     def update(self, dt):
         self.position += self.velocity * dt
 
+        # Rotate shape
+        self.points = [p.rotate(self.rotation * dt) for p in self.points]
+
+        # Screen wrapping
         if self.position.x < 0:
             self.position.x = SCREEN_WIDTH
         if self.position.x > SCREEN_WIDTH:
@@ -45,27 +70,21 @@ class Asteroid(CircleShape):
             self.position.y = 0
 
     # ---------------------------------------------------------
-    # Drawing
+    # Drawing (polygon instead of circle)
     # ---------------------------------------------------------
     def draw(self, screen):
-        pygame.draw.circle(
-            screen,
-            "white",
-            self.position,
-            self.radius,
-            LINE_WIDTH
-        )
+        translated = [(self.position.x + p.x, self.position.y + p.y) for p in self.points]
+        pygame.draw.polygon(screen, "white", translated, LINE_WIDTH)
 
     # ---------------------------------------------------------
-    # Splitting logic + explosion
+    # Splitting + explosion
     # ---------------------------------------------------------
     def split(self):
-        # Trigger explosion
+        # Explosion
         if Asteroid.explosion_group is not None:
             boom = Explosion(self.position, color=(255, 200, 80), particle_count=25)
             Asteroid.explosion_group.add(boom)
 
-        # Remove this asteroid
         self.kill()
 
         if self.radius <= ASTEROID_MIN_RADIUS:
