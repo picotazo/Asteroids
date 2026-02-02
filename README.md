@@ -5,13 +5,16 @@ Built with Python and Pygame, this project features responsive controls, wave‑
 🚀 Gameplay Overview
 Pilot your ship through an asteroid field, destroy incoming rocks, and survive as long as possible.
 Each wave increases difficulty by spawning more asteroids.
-Controls
-|  |  | 
-|  |  | 
-|  |  | 
-|  |  | 
-|  |  | 
-|  |  | 
+
+### Controls
+
+| Action        | Key     |
+|---------------|---------|
+| Rotate Left   | ←       |
+| Rotate Right  | →       |
+| Thrust        | ↑       |
+| Shoot         | Space   |
+| Quit          | ESC     |
 
 
 
@@ -89,5 +92,6 @@ Feel free to fork, modify, and experiment.
 👤 Author
 Picotazo AKA: Peck
 Python developer, game tinkerer, and arcade enthusiast.
+
 
 
