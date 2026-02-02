@@ -19,63 +19,6 @@ Each wave increases difficulty by spawning more asteroids.
 
 
 
-🛠️ Running From Source
-Requirements
-- Python 3.10–3.12
-- Pygame 2.6+
-Install dependencies
-pip install pygame
-
-
-Run the game
-python main.py
-
-
-
-🪟 Windows Executable
-A pre‑built Windows .exe is available in the dist/ folder.
-No Python installation required — just run:
-dist/main.exe
-
-
-
-📁 Project Structure
-asteroids/
-│
-├── main.py
-├── player.py
-├── asteroid.py
-├── shot.py
-├── explosion.py
-├── utils.py
-│
-├── assets/
-│   ├── ship.png
-│   ├── explosion.png
-│   └── ...
-│
-├── highscores.json
-├── README.md
-└── .gitignore
-
-
-
-🧱 Building the EXE (Developer Notes)
-This project is developed inside WSL, but compiled using Windows Python 3.12.
-Build command
-"/mnt/c/Users/peck_/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/LocalCache/local-packages/Python312/Scripts/pyinstaller.exe" \
-    --onefile --windowed --collect-all pygame main.py
-
-
-The executable will appear in:
-dist/main.exe
-
-
-Copy EXE to Windows
-cp dist/main.exe /mnt/c/Users/peck_/Desktop/
-
-
-
 🏆 Features
 - Smooth ship movement with rotation + thrust
 - Screen wrapping
@@ -94,6 +37,7 @@ Feel free to fork, modify, and experiment.
 Picotazo AKA: Peck
 
 Python novice, old fart, past EQ player, Past WoW player, Father of 2!!
+
 
 
 
