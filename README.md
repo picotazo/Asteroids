@@ -13,6 +13,7 @@ Each wave increases difficulty by spawning more asteroids.
 | Rotate Left   | ←  or a    |
 | Rotate Right  | →  or d    |
 | Thrust        | ↑  or w    |
+| Brake         | ↓  or s    |
 | Shoot         | Space      |
 | Quit          | ESC        |
 
@@ -92,6 +93,7 @@ Feel free to fork, modify, and experiment.
 👤 Author
 Picotazo AKA: Peck
 Python developer, game tinkerer, and arcade enthusiast.
+
 
 
 
