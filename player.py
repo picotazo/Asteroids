@@ -1,71 +1,108 @@
+# player.py
+
 import pygame
-from constants import PLAYER_RADIUS, LINE_WIDTH, PLAYER_TURN_SPEED, PLAYER_SPEED, PLAYER_SHOOT_SPEED, SHOT_RADIUS,PLAYER_SHOOT_COOLDOWN_SECONDS
-from circleshape import CircleShape   # your project already has this
-from shot import Shot
+from pygame.math import Vector2
+from circleshape import CircleShape
+from constants import (
+    PLAYER_RADIUS,
+    PLAYER_TURN_SPEED,
+    PLAYER_THRUST,
+    PLAYER_INVINCIBILITY_TIME,
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
+)
+from explosion import Explosion
+
 
 class Player(CircleShape):
+    containers = None
+    explosion_group = None   # NEW: explosion group reference
+
     def __init__(self, x, y):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
-        self.shoot_cooldown = 0
+        self.velocity = Vector2(0, 0)
+        self.invincible = False
+        self.invincibility_timer = 0
 
+        if Player.containers:
+            for group in Player.containers:
+                group.add(self)
 
-    def triangle(self):
-        forward = pygame.Vector2(0, 1).rotate(self.rotation)
-        right = pygame.Vector2(0, 1).rotate(self.rotation + 90) * self.radius / 1.5
-        a = self.position + forward * self.radius
-        b = self.position - forward * self.radius - right
-        c = self.position - forward * self.radius + right
-        return [a, b, c]
-
-    def draw(self, screen):
-        pygame.draw.polygon(screen, "white", self.triangle(), LINE_WIDTH)
-
-    def rotate(self, dt):
-        self.rotation += PLAYER_TURN_SPEED * dt
-
+    # ---------------------------------------------------------
+    # Movement + wrapping
+    # ---------------------------------------------------------
     def update(self, dt):
         keys = pygame.key.get_pressed()
 
-        # Handle rotation
-        if keys[pygame.K_a]:
-            self.rotate(-dt)
-        if keys[pygame.K_d]:
-            self.rotate(dt)
+        # Rotation
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            self.rotation -= PLAYER_TURN_SPEED * dt
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            self.rotation += PLAYER_TURN_SPEED * dt
 
-        # Handle movement
-        if keys[pygame.K_w]:
-            self.move(dt)
-        if keys[pygame.K_s]:
-            self.move(-dt)
-    # Handle shooting (cooldown-aware)
-        if keys[pygame.K_SPACE]:
-            self.shoot()
+        # Thrust
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
+            direction = Vector2(1, 0).rotate(self.rotation)
+            self.velocity += direction * PLAYER_THRUST * dt
 
-    # Cooldown timer update
-        if self.shoot_cooldown > 0:
-            self.shoot_cooldown -= dt
-            if self.shoot_cooldown < 0:
-                self.shoot_cooldown = 0
+        # Movement
+        self.position += self.velocity * dt
 
+        # Screen wrapping
+        if self.position.x < 0:
+            self.position.x = SCREEN_WIDTH
+        if self.position.x > SCREEN_WIDTH:
+            self.position.x = 0
+        if self.position.y < 0:
+            self.position.y = SCREEN_HEIGHT
+        if self.position.y > SCREEN_HEIGHT:
+            self.position.y = 0
 
+        # Invincibility timer
+        if self.invincible:
+            self.invincibility_timer -= dt
+            if self.invincibility_timer <= 0:
+                self.invincible = False
 
-    def move(self, dt):
-        unit_vector = pygame.Vector2(0, 1)
-        rotated_vector = unit_vector.rotate(self.rotation)
-        rotated_with_speed_vector = rotated_vector * PLAYER_SPEED * dt
-        self.position += rotated_with_speed_vector
+    # ---------------------------------------------------------
+    # Drawing
+    # ---------------------------------------------------------
+    def draw(self, screen):
+        # Flash while invincible
+        if self.invincible:
+            if int(self.invincibility_timer * 10) % 2 == 0:
+                return
 
-    def shoot(self):
-        if self.shoot_cooldown > 0:
-            return  # still cooling down
+        # Draw triangle ship
+        points = self.get_triangle_points()
+        pygame.draw.polygon(screen, "white", points, 2)
 
-        # reset cooldown
-        self.shoot_cooldown = PLAYER_SHOOT_COOLDOWN_SECONDS
-        shot = Shot(self.position.x, self.position.y, SHOT_RADIUS)
+    def get_triangle_points(self):
+        forward = Vector2(1, 0).rotate(self.rotation)
+        right = forward.rotate(140)
+        left = forward.rotate(-140)
 
-        direction = pygame.Vector2(0, 1).rotate(self.rotation)
-        shot.velocity = direction * PLAYER_SHOOT_SPEED
+        tip = self.position + forward * self.radius
+        r = self.position + right * self.radius * 0.7
+        l = self.position + left * self.radius * 0.7
 
+        return [tip, r, l]
 
-    
+    # ---------------------------------------------------------
+    # Explosion + respawn
+    # ---------------------------------------------------------
+    def explode(self):
+        if Player.explosion_group is not None:
+            boom = Explosion(self.position, color=(100, 200, 255), particle_count=30)
+            Player.explosion_group.add(boom)
+
+    def respawn(self):
+        self.position = Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+        self.velocity = Vector2(0, 0)
+        self.rotation = 0
+        self.start_invincibility()
+
+    def start_invincibility(self):
+        self.invincible = True
+        self.invincibility_timer = PLAYER_INVINCIBILITY_TIME

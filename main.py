@@ -1,74 +1,144 @@
+# main.py
+
 import pygame
 import sys
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from logger import log_state, log_event
+from pygame.math import Vector2
+
+from constants import (
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
+    FONT_SIZE,
+    PLAYER_LIVES,
+)
 from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from shot import Shot
+from explosion import Explosion
 
 
 def main():
-    print("Starting Asteroids with pygame version:", pygame.__version__)
-    print(f"Screen width: {SCREEN_WIDTH}")
-    print(f"Screen height: {SCREEN_HEIGHT}")
-
     pygame.init()
+    pygame.display.set_caption("Asteroids")
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-    # Sprite groups
-    updatable = pygame.sprite.Group()
-    drawable = pygame.sprite.Group()
-    asteroids = pygame.sprite.Group()
-    shots = pygame.sprite.Group()
-
-    # Register containers
-    Player.containers = (updatable, drawable)
-    Asteroid.containers = (asteroids, updatable, drawable)
-    Shot.containers = (shots, updatable, drawable)
-    AsteroidField.containers = (updatable,)
-
-    # Create game objects
-    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-    asteroid_field = AsteroidField()
-
     clock = pygame.time.Clock()
-    dt = 0
 
-    while True:
-        log_state()
+    # ---------------------------------------------------------
+    # Sprite groups
+    # ---------------------------------------------------------
+    all_sprites = pygame.sprite.Group()
+    asteroid_group = pygame.sprite.Group()
+    shot_group = pygame.sprite.Group()
+    explosion_group = pygame.sprite.Group()   # NEW
 
+    # Assign containers
+    Player.containers = (all_sprites,)
+    Asteroid.containers = (asteroid_group, all_sprites)
+    Shot.containers = (shot_group, all_sprites)
+
+    # NEW: explosion group references
+    Player.explosion_group = explosion_group
+    Asteroid.explosion_group = explosion_group
+
+    # ---------------------------------------------------------
+    # Player setup
+    # ---------------------------------------------------------
+    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+    player.lives = PLAYER_LIVES
+    player.start_invincibility()
+
+    # ---------------------------------------------------------
+    # Asteroid field setup
+    # ---------------------------------------------------------
+    field = AsteroidField(asteroid_group, all_sprites, player)
+    field.spawn_initial_asteroids(6)
+
+    # ---------------------------------------------------------
+    # Scoring
+    # ---------------------------------------------------------
+    score = 0
+    font = pygame.font.SysFont(None, FONT_SIZE)
+
+    # ---------------------------------------------------------
+    # Game loop
+    # ---------------------------------------------------------
+    running = True
+    while running:
+        dt = clock.tick(60) / 1000
+
+        # -----------------------------------------------------
+        # Event handling
+        # -----------------------------------------------------
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return
+                running = False
 
-        # Update all objects
-        updatable.update(dt)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    direction = Vector2(1, 0).rotate(player.rotation)
+                    Shot(player.position.x, player.position.y, direction)
 
-        # Collision: player vs asteroids
-        for asteroid in asteroids:
-            if player.collides_with(asteroid):
-                log_event("player_hit")
-                print("Game over!")
-                sys.exit()
+        # -----------------------------------------------------
+        # Update all sprites
+        # -----------------------------------------------------
+        all_sprites.update(dt)
+        explosion_group.update(dt)   # NEW
 
-        # Collision: shots vs asteroids
-        for asteroid in asteroids:
-            for shot in shots:
-                if asteroid.collides_with(shot):
-                    log_event("asteroid_shot")
-                    asteroid.split()
+        # -----------------------------------------------------
+        # Collision: Shots vs Asteroids
+        # -----------------------------------------------------
+        for shot in shot_group:
+            for asteroid in asteroid_group:
+                if shot.collides_with(asteroid):
                     shot.kill()
+                    asteroid.split()
 
-        # Draw everything
+                    if asteroid.radius > 40:
+                        score += 20
+                    elif asteroid.radius > 25:
+                        score += 50
+                    else:
+                        score += 100
+
+        # -----------------------------------------------------
+        # Collision: Player vs Asteroids
+        # -----------------------------------------------------
+        for asteroid in asteroid_group:
+            if player.collides_with(asteroid) and not player.invincible:
+                asteroid.split()
+                player.explode()     # NEW
+                player.lives -= 1
+
+                if player.lives <= 0:
+                    running = False
+                else:
+                    player.respawn()
+
+        # -----------------------------------------------------
+        # Drawing
+        # -----------------------------------------------------
         screen.fill("black")
 
-        for obj in drawable:
-            obj.draw(screen)
+        # Draw sprites
+        for sprite in all_sprites:
+            sprite.draw(screen)
+
+        # Draw explosions (NEW)
+        for boom in explosion_group:
+            boom.draw(screen)
+
+        # Draw score
+        score_surf = font.render(f"Score: {score}", True, "white")
+        screen.blit(score_surf, (10, 10))
+
+        # Draw lives
+        lives_surf = font.render(f"Lives: {player.lives}", True, "white")
+        screen.blit(lives_surf, (10, 50))
 
         pygame.display.flip()
 
-        dt = clock.tick(60) / 1000.0  # Convert ms to seconds
+    pygame.quit()
+    sys.exit()
 
 
 if __name__ == "__main__":
