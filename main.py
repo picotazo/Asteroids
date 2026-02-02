@@ -1,6 +1,8 @@
 # main.py
 import pygame
 import sys
+import json
+import os
 from pygame.math import Vector2
 from background import Starfield
 
@@ -19,6 +21,70 @@ from shot import Shot
 from explosion import Explosion
 
 
+# ---------------------------------------------------------
+# High Score Helpers
+# ---------------------------------------------------------
+def load_high_scores():
+    if not os.path.exists("highscores.json"):
+        return []
+    with open("highscores.json", "r") as f:
+        return json.load(f)
+
+
+def save_high_score(score):
+    scores = load_high_scores()
+    scores.append(score)
+    scores = sorted(scores, reverse=True)[:10]  # keep top 10
+    with open("highscores.json", "w") as f:
+        json.dump(scores, f)
+
+
+# ---------------------------------------------------------
+# Game Over Screen
+# ---------------------------------------------------------
+def game_over_screen(screen, font, score):
+    title = font.render("GAME OVER", True, "white")
+    score_text = font.render(f"Final Score: {score}", True, "white")
+    prompt = font.render("Press R to Restart or Q to Quit", True, "white")
+
+    # Load high scores
+    scores = load_high_scores()
+    high_title = font.render("High Scores:", True, "white")
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    return "restart"
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+
+        screen.fill("black")
+
+        # Draw main text
+        screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 120))
+        screen.blit(score_text, (SCREEN_WIDTH // 2 - score_text.get_width() // 2, 200))
+        screen.blit(prompt, (SCREEN_WIDTH // 2 - prompt.get_width() // 2, 260))
+
+        # Draw high scores
+        screen.blit(high_title, (SCREEN_WIDTH // 2 - high_title.get_width() // 2, 340))
+        y = 380
+        for s in scores[:10]:
+            hs = font.render(str(s), True, "white")
+            screen.blit(hs, (SCREEN_WIDTH // 2 - hs.get_width() // 2, y))
+            y += 30
+
+        pygame.display.flip()
+
+
+# ---------------------------------------------------------
+# Main Game Loop
+# ---------------------------------------------------------
 def main():
     pygame.init()
     pygame.display.set_caption("Asteroids")
@@ -32,14 +98,13 @@ def main():
     all_sprites = pygame.sprite.Group()
     asteroid_group = pygame.sprite.Group()
     shot_group = pygame.sprite.Group()
-    explosion_group = pygame.sprite.Group()   # NEW
+    explosion_group = pygame.sprite.Group()
 
     # Assign containers
     Player.containers = (all_sprites,)
     Asteroid.containers = (asteroid_group, all_sprites)
     Shot.containers = (shot_group, all_sprites)
 
-    # NEW: explosion group references
     Player.explosion_group = explosion_group
     Asteroid.explosion_group = explosion_group
 
@@ -86,7 +151,7 @@ def main():
         # Update all sprites
         # -----------------------------------------------------
         all_sprites.update(dt)
-        explosion_group.update(dt)   # NEW
+        explosion_group.update(dt)
 
         # -----------------------------------------------------
         # Collision: Shots vs Asteroids
@@ -110,11 +175,15 @@ def main():
         for asteroid in asteroid_group:
             if player.collides_with(asteroid) and not player.invincible:
                 asteroid.split()
-                player.explode()     # NEW
+                player.explode()
                 player.lives -= 1
 
                 if player.lives <= 0:
-                    running = False
+                    save_high_score(score)
+                    result = game_over_screen(screen, font, score)
+                    if result == "restart":
+                        return main()
+
                 else:
                     player.respawn()
 
@@ -124,19 +193,15 @@ def main():
         screen.fill("black")
         background.draw(screen)
 
-        # Draw sprites
         for sprite in all_sprites:
             sprite.draw(screen)
 
-        # Draw explosions (NEW)
         for boom in explosion_group:
             boom.draw(screen)
 
-        # Draw score
         score_surf = font.render(f"Score: {score}", True, "white")
         screen.blit(score_surf, (10, 10))
 
-        # Draw lives
         lives_surf = font.render(f"Lives: {player.lives}", True, "white")
         screen.blit(lives_surf, (10, 50))
 
